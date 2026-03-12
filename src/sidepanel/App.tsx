@@ -41,7 +41,11 @@ function App() {
 
   const addWordsToSoup = useCallback((newWords: string) => {
     setWordSoup((prev) => {
-      const updated = prev ? `${prev} ${newWords}` : newWords;
+      const existing = new Set(prev.split(/\s+/).filter(Boolean));
+      const incoming = newWords.split(/\s+/).filter(Boolean);
+      const fresh = incoming.filter((w) => !existing.has(w));
+      if (fresh.length === 0) return prev;
+      const updated = prev ? `${prev} ${fresh.join(" ")}` : fresh.join(" ");
       setCharBuckets(createBuckets(updated));
       return updated;
     });
@@ -77,7 +81,8 @@ function App() {
       next[tagIndex] = [...next[tagIndex], word];
       return next;
     });
-  }, []);
+    addWordsToSoup(word);
+  }, [addWordsToSoup]);
 
   const removeWordFromTag = useCallback((tagIndex: number, wordIndex: number) => {
     setCurrentTags((prev) => {

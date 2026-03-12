@@ -40,7 +40,10 @@ export function Tag({
   }, [editingIdx]);
 
   const tagString = words.join(" ");
-  const charsLeft = 20 - tagString.length;
+  const pendingString = inlineText.trim()
+    ? (tagString ? `${tagString} ${inlineText.trim()}` : inlineText.trim())
+    : tagString;
+  const charsLeft = 20 - pendingString.length;
 
   const parseDragData = (e: DragEvent): DragData | null => {
     try {
