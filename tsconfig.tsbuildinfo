@@ -1,0 +1,1 @@
+{"root":["./src/background/background.ts","./src/content/content.ts","./src/sidepanel/app.tsx","./src/sidepanel/charbucket.tsx","./src/sidepanel/copypastetext.tsx","./src/sidepanel/tabspanel.tsx","./src/sidepanel/tag.tsx","./src/sidepanel/main.tsx","./src/sidepanel/theme.ts"],"version":"5.6.3"}
