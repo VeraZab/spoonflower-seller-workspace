@@ -1,40 +1,136 @@
-import { useState, ChangeEvent, useCallback } from "react";
-import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
-import DownloadIcon from "@mui/icons-material/Download";
-import UploadIcon from "@mui/icons-material/Upload";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { Box, Button, Typography, Tooltip } from "@mui/material";
 
 import { CopyPasteText } from "./CopyPasteText";
 import { Tag } from "./Tag";
-import { WordSoup, createBuckets } from "./TabsPanel";
+import { WordInput, createBuckets } from "./TabsPanel";
 import { CharBucket } from "./CharBucket";
 
 const isExtension = typeof chrome !== "undefined" && !!chrome?.tabs;
+const SLOT_COUNT = 13;
+const PULL_PATTERNS = ["/shop-by-image/", "/en/wallpaper/"];
+
+const emptyTags = (): string[][] => new Array(SLOT_COUNT).fill(null).map(() => []);
 
 function App() {
-  const initialKeywords = new Array(13).fill("");
-  const [currentTags, setCurrentTags] = useState<string[]>(initialKeywords);
+  const [currentTags, setCurrentTags] = useState<string[][]>(emptyTags);
   const [finalKeywordString, setFinalKeywordString] = useState("");
   const [pageStatus, setPageStatus] = useState<string>("");
+  const [activeTabUrl, setActiveTabUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (!isExtension) return;
+    const updateUrl = () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        setActiveTabUrl(tabs[0]?.url ?? "");
+      });
+    };
+    updateUrl();
+    chrome.tabs.onUpdated.addListener(updateUrl);
+    chrome.tabs.onActivated.addListener(updateUrl);
+    return () => {
+      chrome.tabs.onUpdated.removeListener(updateUrl);
+      chrome.tabs.onActivated.removeListener(updateUrl);
+    };
+  }, []);
+
+  const pullEnabled = isExtension && PULL_PATTERNS.some((p) => activeTabUrl.includes(p));
 
   const [wordSoup, setWordSoup] = useState("");
   const [charBuckets, setCharBuckets] = useState<Record<string, string[]>>({});
 
+  const addWordsToSoup = useCallback((newWords: string) => {
+    setWordSoup((prev) => {
+      const updated = prev ? `${prev} ${newWords}` : newWords;
+      setCharBuckets(createBuckets(updated));
+      return updated;
+    });
+  }, []);
+
+  const removeWordFromSoup = useCallback((word: string) => {
+    setWordSoup((prev) => {
+      const escaped = word.replace(/[-.*+?^${}()|[\]\\]/g, "\\$&");
+      const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "i");
+      const updated = prev.replace(regex, "").trim().replace(/\s{2,}/g, " ");
+      setCharBuckets(createBuckets(updated));
+      return updated;
+    });
+  }, []);
+
+  const hasBuckets = Object.keys(charBuckets).length > 0;
+
   const tempKeywordString = currentTags
-    .filter((k) => k.trim() !== "")
-    .map((w) => w.trim())
+    .filter((t) => t.length > 0)
+    .map((t) => t.join(" "))
     .join(", ");
 
   const charsUsed = tempKeywordString.length;
 
-  const updateTags = useCallback(
-    (e: ChangeEvent<HTMLInputElement>, tagIndex: number) => {
-      const value = e?.target.value;
-      const newTags = [...currentTags];
-      newTags[tagIndex] = value;
-      setCurrentTags(newTags);
-    },
+  const usedWords = useMemo(
+    () => new Set(currentTags.flat().flatMap((w) => w.split(/\s+/).filter(Boolean))),
     [currentTags]
   );
+
+  const addWordToTag = useCallback((tagIndex: number, word: string) => {
+    setCurrentTags((prev) => {
+      const next = prev.map((t) => [...t]);
+      next[tagIndex] = [...next[tagIndex], word];
+      return next;
+    });
+  }, []);
+
+  const removeWordFromTag = useCallback((tagIndex: number, wordIndex: number) => {
+    setCurrentTags((prev) => {
+      const next = prev.map((t) => [...t]);
+      next[tagIndex] = next[tagIndex].filter((_, i) => i !== wordIndex);
+      return next;
+    });
+  }, []);
+
+  const reorderWordsInTag = useCallback((tagIndex: number, fromIdx: number, toIdx: number) => {
+    setCurrentTags((prev) => {
+      const next = prev.map((t) => [...t]);
+      const words = [...next[tagIndex]];
+      const [moved] = words.splice(fromIdx, 1);
+      const insertAt = fromIdx < toIdx ? toIdx - 1 : toIdx;
+      words.splice(insertAt, 0, moved);
+      next[tagIndex] = words;
+      return next;
+    });
+  }, []);
+
+  const moveWordBetweenTags = useCallback((fromTag: number, wordIdx: number, toTag: number) => {
+    setCurrentTags((prev) => {
+      const next = prev.map((t) => [...t]);
+      const word = next[fromTag][wordIdx];
+      next[fromTag] = next[fromTag].filter((_, i) => i !== wordIdx);
+      next[toTag] = [...next[toTag], word];
+      return next;
+    });
+  }, []);
+
+  const editWordInTag = useCallback((tagIndex: number, wordIndex: number, newWord: string) => {
+    setCurrentTags((prev) => {
+      const oldWord = prev[tagIndex][wordIndex];
+
+      setWordSoup((prevSoup) => {
+        const escaped = oldWord.replace(/[-.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "i");
+        let updated: string;
+        if (regex.test(prevSoup)) {
+          updated = prevSoup.replace(regex, `$1${newWord}`);
+        } else {
+          updated = prevSoup ? `${prevSoup} ${newWord}` : newWord;
+        }
+        setCharBuckets(createBuckets(updated));
+        return updated;
+      });
+
+      const next = prev.map((t) => [...t]);
+      next[tagIndex][wordIndex] = newWord;
+      return next;
+    });
+  }, []);
 
   const pullTagsFromPage = () => {
     if (!isExtension) {
@@ -52,16 +148,16 @@ function App() {
         if (response?.tags) {
           const tags = response.tags as string[];
           if (response.mode === "append") {
-            const soup = tags.join(" ").toLowerCase();
-            setWordSoup((prev) => {
-              const combined = prev ? `${prev} ${soup}` : soup;
-              return combined;
-            });
-            setCharBuckets(createBuckets(wordSoup ? `${wordSoup} ${soup}` : soup));
-            setPageStatus(`Added keywords from ${tags.length} design(s) to Keyword Ideas`);
+            addWordsToSoup(tags.join(" ").toLowerCase());
+            setPageStatus(`Added keywords from ${tags.length} design(s)`);
           } else {
-            const padded = [...tags, ...new Array(Math.max(0, 13 - tags.length)).fill("")];
-            setCurrentTags(padded.slice(0, 13));
+            const newTags = emptyTags();
+            tags.forEach((tag, i) => {
+              if (i < SLOT_COUNT) {
+                newTags[i] = tag.split(/\s+/).filter(Boolean);
+              }
+            });
+            setCurrentTags(newTags);
             setPageStatus(`Pulled ${tags.length} tag(s) from page`);
           }
         } else {
@@ -71,101 +167,80 @@ function App() {
     });
   };
 
-  const pushTagsToPage = () => {
-    if (!isExtension) {
-      setPageStatus("Pull/push only works in the Chrome extension, not dev mode.");
-      return;
-    }
-    setPageStatus("");
-    const tags = currentTags.filter((t) => t.trim() !== "");
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (!tabs[0]?.id) return;
-      chrome.tabs.sendMessage(tabs[0].id, { action: "setTags", tags }, (response) => {
-        if (chrome.runtime.lastError) {
-          setPageStatus("Could not connect to page. Make sure you're on a Spoonflower listing page.");
-          return;
-        }
-        if (response?.success) {
-          setPageStatus("Tags applied to page!");
-        } else {
-          setPageStatus(response?.error || "Could not set tags on this page.");
-        }
-      });
-    });
-  };
-
   return (
-    <Box sx={{ width: "100%", p: 1.5, pt: 0 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden" }}>
+      {/* Header */}
       <Box
         sx={{
-          position: "sticky",
-          top: 0,
-          backgroundColor: "background.default",
-          zIndex: 10,
-          pb: 1,
-          pt: 1.5,
+          display: "flex",
+          alignItems: "center",
+          px: 1,
+          py: 0.5,
+          flexShrink: 0,
+          gap: 0.5,
         }}
       >
-        <Typography variant="h6" sx={{ textAlign: "center", mb: 1 }}>
-          Spoonflower Tag Helper
-        </Typography>
-
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 1 }}>
-          <Tooltip title="Pull existing tags from the current Spoonflower page">
+        <Tooltip title={pullEnabled ? "Pull tags from page" : "Only active on image search or product listing pages"}>
+          <span>
             <Button
               variant="outlined"
               size="small"
-              startIcon={<DownloadIcon />}
               onClick={pullTagsFromPage}
+              disabled={!pullEnabled}
+              sx={{ fontSize: "0.75rem", textTransform: "none", whiteSpace: "nowrap", flexShrink: 0 }}
             >
               Pull from page
             </Button>
-          </Tooltip>
-          <Tooltip title="Push your tags into the current Spoonflower page">
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<UploadIcon />}
-              onClick={pushTagsToPage}
-              disabled={!currentTags.some((k) => Boolean(k.trim()))}
-            >
-              Push to page
-            </Button>
-          </Tooltip>
-        </Box>
+          </span>
+        </Tooltip>
 
         {pageStatus && (
           <Typography
-            variant="body2"
+            variant="caption"
+            noWrap
             sx={{
-              textAlign: "center",
               color: pageStatus.includes("Could not") || pageStatus.includes("No tags")
                 ? "error.main"
                 : "success.main",
-              mb: 0.5,
+              ml: "auto",
+              textAlign: "right",
+              flexShrink: 1,
+              minWidth: 0,
             }}
           >
             {pageStatus}
           </Typography>
         )}
-        <Divider />
       </Box>
 
-      <Box sx={{ mt: 1 }}>
-        <WordSoup
-          wordSoup={wordSoup}
-          setWordSoup={setWordSoup}
-          setCharBuckets={setCharBuckets}
-        />
+      {/* Word input */}
+      <Box
+        sx={{
+          flexShrink: 0,
+          px: 1,
+          py: 0.75,
+        }}
+      >
+        <WordInput onAddWords={addWordsToSoup} />
+      </Box>
 
-        {Object.keys(charBuckets).length > 0 && (
+      {/* Buckets pane */}
+      <Box
+        sx={{
+          flexShrink: 0,
+          maxHeight: "40vh",
+          overflowY: "auto",
+          px: 1,
+          py: 0.5,
+        }}
+      >
+        {hasBuckets && (
           <Box
             sx={{
               display: "flex",
               flexWrap: "wrap",
               gap: "4px",
-              mt: 1,
-              mb: 1,
+              mt: 0.5,
             }}
           >
             {Object.entries(charBuckets).map(([length, words]) => (
@@ -173,70 +248,89 @@ function App() {
                 key={length}
                 length={length}
                 words={words}
-                currentTags={currentTags}
+                usedWords={usedWords}
+                onRemoveWord={removeWordFromSoup}
               />
             ))}
           </Box>
         )}
+      </Box>
 
-        <Divider sx={{ my: 1 }} />
-
+      {/* Bottom pane: tag slots */}
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          px: 1,
+          pt: 0.5,
+        }}
+      >
         <Box
           sx={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            mb: 1,
+            mb: 0.5,
           }}
         >
-          <Typography sx={{ fontWeight: "bold", fontSize: "0.85rem" }}>Plan your tags</Typography>
+          <Typography sx={{ fontWeight: "bold", fontSize: "0.8rem" }}>Plan your tags</Typography>
           <Typography
-            variant="body2"
+            variant="caption"
             sx={{ color: charsUsed > 284 ? "error.main" : "text.secondary" }}
           >
             {charsUsed}/284 chars
           </Typography>
         </Box>
 
-        {currentTags.map((k, i) => (
-          <Tag key={i} tag={k} tagIndex={i} onChange={updateTags} />
+        {currentTags.map((words, i) => (
+          <Tag
+            key={i}
+            words={words}
+            tagIndex={i}
+            onAddWord={addWordToTag}
+            onRemoveWord={removeWordFromTag}
+            onReorder={reorderWordsInTag}
+            onMoveWord={moveWordBetweenTags}
+            onEditWord={editWordInTag}
+          />
         ))}
-      </Box>
 
-      <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mt: 2, mb: 1 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => {
-            setCurrentTags([...initialKeywords]);
-            setFinalKeywordString("");
-            setCharBuckets({});
-            setWordSoup("");
-            setPageStatus("");
-          }}
-        >
-          Reset
-        </Button>
-        <Button
-          variant="contained"
-          size="small"
-          disabled={
-            !currentTags.some((k) => Boolean(k.trim())) ||
-            tempKeywordString.length > 284
-          }
-          onClick={() => {
-            setFinalKeywordString(tempKeywordString);
-          }}
-        >
-          Done!
-        </Button>
-      </Box>
-
-      {finalKeywordString && (
-        <Box sx={{ mt: 1 }}>
-          <CopyPasteText text={finalKeywordString} />
+        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mt: 1, mb: 1 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              setCurrentTags(emptyTags());
+              setFinalKeywordString("");
+              setCharBuckets({});
+              setWordSoup("");
+              setPageStatus("");
+            }}
+          >
+            Reset
+          </Button>
+          <Button
+            variant="contained"
+            size="small"
+            disabled={
+              !currentTags.some((t) => t.length > 0) ||
+              tempKeywordString.length > 284
+            }
+            onClick={() => {
+              setFinalKeywordString(tempKeywordString);
+            }}
+          >
+            Done!
+          </Button>
         </Box>
-      )}
+
+        {finalKeywordString && (
+          <Box sx={{ mb: 1 }}>
+            <CopyPasteText text={finalKeywordString} />
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 }
