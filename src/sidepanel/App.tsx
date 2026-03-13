@@ -53,9 +53,10 @@ function App() {
 
   const removeWordFromSoup = useCallback((word: string) => {
     setWordSoup((prev) => {
-      const escaped = word.replace(/[-.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(`(^|\\s)${escaped}(?=\\s|$)`, "i");
-      const updated = prev.replace(regex, "").trim().replace(/\s{2,}/g, " ");
+      const updated = prev
+        .split(/\s+/)
+        .filter((w) => w.toLowerCase() !== word.toLowerCase())
+        .join(" ");
       setCharBuckets(createBuckets(updated));
       return updated;
     });
