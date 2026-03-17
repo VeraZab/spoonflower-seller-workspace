@@ -43,7 +43,8 @@ export function Tag({
   const pendingString = inlineText.trim()
     ? (tagString ? `${tagString} ${inlineText.trim()}` : inlineText.trim())
     : tagString;
-  const charsLeft = 20 - pendingString.length;
+  const reserveSpace = pendingString.length > 0 && pendingString.length < 20 ? 1 : 0;
+  const charsLeft = 20 - pendingString.length - reserveSpace;
 
   const parseDragData = (e: DragEvent): DragData | null => {
     try {

@@ -144,31 +144,84 @@ function App() {
       return;
     }
     setPageStatus("");
+
+    const applyTagResponse = (response: { tags?: string[]; mode?: "replace" | "append"; error?: string }) => {
+      if (response?.tags) {
+        const tags = response.tags as string[];
+        if (response.mode === "append") {
+          addWordsToSoup(tags.join(" ").toLowerCase());
+          setPageStatus(`Added keywords from ${tags.length} design(s)`);
+        } else {
+          const newTags = emptyTags();
+          tags.forEach((tag, i) => {
+            if (i < SLOT_COUNT) {
+              newTags[i] = tag.split(/\s+/).filter(Boolean);
+            }
+          });
+          setCurrentTags(newTags);
+          setPageStatus(`Pulled ${tags.length} tag(s) from page`);
+        }
+      } else {
+        setPageStatus(response?.error || "No tags found");
+      }
+    };
+
+    const sendGetTagsMessage = (
+      tabId: number,
+      done: (response: { tags?: string[]; mode?: "replace" | "append"; error?: string } | undefined, lastErrorMessage?: string) => void
+    ) => {
+      chrome.tabs.sendMessage(tabId, { action: "getTags" }, (response) => {
+        done(
+          response as { tags?: string[]; mode?: "replace" | "append"; error?: string } | undefined,
+          chrome.runtime.lastError?.message
+        );
+      });
+    };
+
+    const injectContentScriptFromManifest = (tabId: number, done: (lastErrorMessage?: string) => void) => {
+      const scriptFile = chrome.runtime.getManifest().content_scripts?.[0]?.js?.[0];
+      if (!scriptFile) {
+        done("content script file not found in manifest");
+        return;
+      }
+      chrome.scripting.executeScript(
+        {
+          target: { tabId },
+          files: [scriptFile],
+        },
+        () => done(chrome.runtime.lastError?.message)
+      );
+    };
+
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (!tabs[0]?.id) return;
-      chrome.tabs.sendMessage(tabs[0].id, { action: "getTags" }, (response) => {
-        if (chrome.runtime.lastError) {
-          setPageStatus("Could not connect to page. Make sure you're on a Spoonflower listing page.");
+      const tabId = tabs[0].id;
+      sendGetTagsMessage(tabId, (response, lastErrorMessage) => {
+        if (lastErrorMessage) {
+          const isMissingReceiver = /could not establish connection|receiving end does not exist/i
+            .test(lastErrorMessage);
+          if (!isMissingReceiver) {
+            setPageStatus("Could not connect to page.");
+            return;
+          }
+
+          injectContentScriptFromManifest(tabId, (injectErrorMessage) => {
+            if (injectErrorMessage) {
+              setPageStatus("Could not connect to page.");
+              return;
+            }
+
+            sendGetTagsMessage(tabId, (retryResponse, retryErrorMessage) => {
+              if (retryErrorMessage) {
+                setPageStatus("Could not connect to page.");
+                return;
+              }
+              applyTagResponse(retryResponse ?? {});
+            });
+          });
           return;
         }
-        if (response?.tags) {
-          const tags = response.tags as string[];
-          if (response.mode === "append") {
-            addWordsToSoup(tags.join(" ").toLowerCase());
-            setPageStatus(`Added keywords from ${tags.length} design(s)`);
-          } else {
-            const newTags = emptyTags();
-            tags.forEach((tag, i) => {
-              if (i < SLOT_COUNT) {
-                newTags[i] = tag.split(/\s+/).filter(Boolean);
-              }
-            });
-            setCurrentTags(newTags);
-            setPageStatus(`Pulled ${tags.length} tag(s) from page`);
-          }
-        } else {
-          setPageStatus(response?.error || "No tags found on this page.");
-        }
+        applyTagResponse(response ?? {});
       });
     });
   };

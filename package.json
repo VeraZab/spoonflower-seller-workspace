@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist release",
+    "preflight:chrome": "npm run build && node scripts/check-chrome-package.mjs",
+    "package:chrome": "npm run preflight:chrome && mkdir -p release && cd dist && zip -r \"../release/spoonflower-tag-helper-v$npm_package_version.zip\" . -x \"*.DS_Store\""
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -24,5 +26,10 @@
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.6.2",
     "vite": "^6.0.5"
+  },
+  "overrides": {
+    "@crxjs/vite-plugin": {
+      "rollup": "2.80.0"
+    }
   }
 }

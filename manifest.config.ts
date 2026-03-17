@@ -3,11 +3,13 @@ import { defineManifest } from "@crxjs/vite-plugin";
 export default defineManifest({
   manifest_version: 3,
   name: "Spoonflower Tag Helper",
+  short_name: "Tag Helper",
   version: "1.0.0",
+  minimum_chrome_version: "114",
   description:
     "Plan and optimize your Spoonflower listing tags directly in your seller workspace",
   permissions: ["sidePanel", "activeTab", "scripting"],
-  host_permissions: ["https://*.spoonflower.com/*"],
+  host_permissions: ["https://spoonflower.com/*", "https://*.spoonflower.com/*"],
   side_panel: {
     default_path: "sidepanel.html",
   },
@@ -16,7 +18,7 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ["https://*.spoonflower.com/*"],
+      matches: ["https://spoonflower.com/*", "https://*.spoonflower.com/*"],
       js: ["src/content/content.ts"],
       run_at: "document_idle",
     },

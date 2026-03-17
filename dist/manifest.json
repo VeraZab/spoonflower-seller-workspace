@@ -1,7 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Spoonflower Tag Helper",
+  "short_name": "Tag Helper",
   "version": "1.0.0",
+  "minimum_chrome_version": "114",
   "description": "Plan and optimize your Spoonflower listing tags directly in your seller workspace",
   "permissions": [
     "sidePanel",
@@ -9,6 +11,7 @@
     "scripting"
   ],
   "host_permissions": [
+    "https://spoonflower.com/*",
     "https://*.spoonflower.com/*"
   ],
   "side_panel": {
@@ -20,11 +23,12 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://*.spoonflower.com/*"
-      ],
       "js": [
-        "src/content/content.ts-loader.js"
+        "assets/content.ts-xghr2Oxk.js"
+      ],
+      "matches": [
+        "https://spoonflower.com/*",
+        "https://*.spoonflower.com/*"
       ],
       "run_at": "document_idle"
     }
@@ -40,11 +44,11 @@
   "web_accessible_resources": [
     {
       "matches": [
-        "<all_urls>"
+        "https://*.spoonflower.com/*",
+        "https://spoonflower.com/*"
       ],
       "resources": [
-        "**/*",
-        "*"
+        "assets/content.ts-xghr2Oxk.js"
       ],
       "use_dynamic_url": false
     }
