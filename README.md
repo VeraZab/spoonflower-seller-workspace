@@ -4,17 +4,16 @@ A Chrome side panel extension that helps you plan and optimize your Spoonflower 
 
 ## Features
 
-- **Keyword Ideas** — paste raw keyword ideas, auto-grouped into character-length buckets. Drag and Drop and reorder keyword into the 13 keyword slots.
-- **Rework Keywords** — paste existing comma-separated tags to edit and reorganize
-- **13 tag slots** — plan each tag with character limit feedback (20 char guideline, 30 max)
-- **284-character total limit** — live counter for the full keyword string
-- **Pull from page** — read existing tags from the current Spoonflower listing page
-- **Copy to clipboard** — one-click copy of the final comma-separated tag string
+- **Keyword Ideas for New Listings** — paste raw keyword ideas or pull them from the shop-by-image page. Get auto-grouped keyword suggestions by character-length buckets. 
+- **Rework Keywords for Existing Listings** — pull existing product page keywords and edit and reorganize them.
+- **13 tag slots** — plan each tag with character limit feedback (20 char guideline). Drag and Drop and reorder keyword from char-length buckets.
+- **20 Char per Tag LIVE Counter** — live counter for the full keyword string
+- **Copy Final Keywords To Clipboard** — one-click copy of the final comma-separated tag string.
 
 
 ## Usage
 
-1. Navigate to a Spoonflower listing or design editor page
+1. Navigate to a Spoonflower listing or shop-by-image page with results of an image search.
 2. Click the extension icon to open the Tag Helper side panel
 3. Use **Pull from page** to import existing tags, or start fresh with **Keyword Ideas**
 4. Plan your 13 tags in the tag slots — the character counters help you stay within limits
