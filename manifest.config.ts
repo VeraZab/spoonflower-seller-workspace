@@ -2,8 +2,8 @@ import { defineManifest } from "@crxjs/vite-plugin";
 
 export default defineManifest({
   manifest_version: 3,
-  name: "Spoonflower Tag Helper",
-  short_name: "Tag Helper",
+  name: "Spoonflower Seller Lab",
+  short_name: "Spoonflower Seller Lab",
   version: "1.0.0",
   minimum_chrome_version: "114",
   description:
@@ -29,6 +29,6 @@ export default defineManifest({
     "128": "icons/icon128.png",
   },
   action: {
-    default_title: "Open Tag Helper",
+    default_title: "Open Seller Lab",
   },
 });

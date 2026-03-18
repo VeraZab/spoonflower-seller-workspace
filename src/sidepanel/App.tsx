@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { Box, Button, Typography, Tooltip } from "@mui/material";
+import { Box, Button, Typography, Tooltip, Link } from "@mui/material";
 
 import { CopyPasteText } from "./CopyPasteText";
 import { Tag } from "./Tag";
@@ -8,7 +8,7 @@ import { CharBucket } from "./CharBucket";
 
 const isExtension = typeof chrome !== "undefined" && !!chrome?.tabs;
 const SLOT_COUNT = 13;
-const PULL_PATTERNS = ["/shop-by-image/", "/en/wallpaper/"];
+const PULL_PATTERNS = ["/shop-by-image/", "/en/"];
 
 const emptyTags = (): string[][] => new Array(SLOT_COUNT).fill(null).map(() => []);
 
@@ -140,7 +140,7 @@ function App() {
 
   const pullTagsFromPage = () => {
     if (!isExtension) {
-      setPageStatus("Pull/push only works in the Chrome extension, not dev mode.");
+      setPageStatus("Pull only works in the Chrome extension, not dev mode.");
       return;
     }
     setPageStatus("");
@@ -227,7 +227,7 @@ function App() {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh", width: "100%", overflow: "hidden", boxShadow: "none" }}>
       {/* Header */}
       <Box
         sx={{
@@ -389,6 +389,17 @@ function App() {
             <CopyPasteText text={finalKeywordString} />
           </Box>
         )}
+
+        <Box sx={{ pt: 1, pb: 1, textAlign: "center" }}>
+          <Link
+            href="mailto:zabzablab@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ fontSize: "0.65rem", color: "text.secondary" }}
+          >
+            feedback / questions / ideas ?
+          </Link>
+        </Box>
       </Box>
     </Box>
   );

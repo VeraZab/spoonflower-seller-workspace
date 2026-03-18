@@ -1,4 +1,4 @@
-# Spoonflower Tag Helper — Chrome Extension
+# Spoonflower Seller Lab — Chrome Extension
 
 A Chrome side panel extension that helps you plan and optimize your Spoonflower listing tags directly alongside the seller workspace. 
 
@@ -14,7 +14,7 @@ A Chrome side panel extension that helps you plan and optimize your Spoonflower 
 ## Usage
 
 1. Navigate to a Spoonflower listing or shop-by-image page with results of an image search.
-2. Click the extension icon to open the Tag Helper side panel
+2. Click the extension icon to open the Seller Lab side panel
 3. Use **Pull from page** to import existing tags, or start fresh with **Keyword Ideas**
 4. Plan your 13 tags in the tag slots — the character counters help you stay within limits
 5. Click **Done!** to generate the final keyword string
@@ -26,7 +26,7 @@ Use this section for copy/paste into the Chrome Web Store listing form.
 
 ### Store listing assets
 
-- Extension name: `Spoonflower Tag Helper`
+- Extension name: `Spoonflower Seller Lab`
 - Screenshot order:
   1. `public/icons/extension-screenshot-2.png`
   2. `public/icons/extension-screenshot.png`
@@ -38,16 +38,16 @@ Use this section for copy/paste into the Chrome Web Store listing form.
 
 ### Detailed description
 
-Spoonflower Tag Helper helps sellers build stronger listing keywords without leaving Spoonflower.
+Spoonflower Seller Lab helps sellers build stronger listing keywords without leaving Spoonflower.
 
-Use the side panel to pull tags from the current Spoonflower page, organize words into 13 tag slots, and track character limits in real time. When your keyword plan is ready, copy your final keyword string or push tags back to the page.
+Use the side panel to pull tags from the current Spoonflower page, organize words into 13 tag slots, and track character limits in real time. When your keyword plan is ready, copy your final keyword string and paste back to Spoonflower.
 
 What it helps with:
 
 - Organizing raw keyword ideas into reusable word buckets
 - Reworking existing tags into clearer, more searchable phrases
 - Managing per-tag and total character limits
-- Quickly copying or writing optimized tags back into your workflow
+- Quickly copying optimized tags back into your workflow
 
 The extension only works on Spoonflower pages and is designed for listing/tag workflow support.
 
@@ -57,9 +57,9 @@ The extension only works on Spoonflower pages and is designed for listing/tag wo
 
 ### Permissions justification
 
-- `sidePanel`: Open the Tag Helper interface in the Chrome side panel.
-- `activeTab` + `scripting`: Read and update listing tag fields on the currently active Spoonflower tab when the user clicks Pull/Push.
-- `https://spoonflower.com/*` + `https://*.spoonflower.com/*`: Limit access to Spoonflower pages only for tag extraction and tag entry.
+- `sidePanel`: Open the Seller Lab interface in the Chrome side panel.
+- `activeTab` + `scripting`: Read listing tag fields on the currently active Spoonflower tab when the user clicks Pull.
+- `https://spoonflower.com/*` + `https://*.spoonflower.com/*`: Limit access to Spoonflower pages only for tag extraction.
 
 ### Privacy disclosure
 

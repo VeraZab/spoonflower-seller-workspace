@@ -19,7 +19,7 @@ Use this runbook each time you publish a new version.
 
 - [ ] Run `npm run package:chrome`
 - [ ] Confirm output zip exists in `release/`
-  - expected format: `spoonflower-tag-helper-v<version>.zip`
+  - expected format: `spoonflower-seller-lab-v<version>.zip`
 - [ ] Confirm `dist/manifest.json` has expected version and permissions
 
 ## 3) Local QA before upload
@@ -31,7 +31,6 @@ Use this runbook each time you publish a new version.
   - [ ] side panel opens from extension action
   - [ ] pull tags works on search/browse pages
   - [ ] pull tags works on single product pages
-  - [ ] push tags works in listing editor
   - [ ] copy output works
   - [ ] "No tags found" appears when page has no tags
 - [ ] Check for zero runtime errors in:

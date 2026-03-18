@@ -4,7 +4,7 @@ Use this file as the source of truth for Chrome Web Store listing text and polic
 
 ## 1) Store listing assets
 
-- Extension name: `Spoonflower Tag Helper`
+- Extension name: `Spoonflower Seller Lab`
 - Screenshots (upload in this order):
   1. `public/icons/extension-screenshot-2.png`
   2. `public/icons/extension-screenshot.png`
@@ -16,7 +16,7 @@ Use this file as the source of truth for Chrome Web Store listing text and polic
 
 ## 3) Detailed description
 
-Spoonflower Tag Helper helps sellers build stronger listing keywords without leaving Spoonflower.
+Spoonflower Seller Lab helps sellers build stronger listing keywords without leaving Spoonflower.
 
 Use the side panel to pull tags from the current Spoonflower page, or from the shop-by-image title results, organize words into 13 tag slots, and track character limits in real time. When your keyword plan is ready, copy your final keyword string and paste back to Spoonflower.
 
@@ -35,9 +35,9 @@ The extension only works on Spoonflower pages and is designed for listing/tag wo
 
 ## 5) Permissions justification (paste-ready)
 
-- `sidePanel`: Open the Tag Helper interface in the Chrome side panel.
-- `activeTab` + `scripting`: Read and update listing tag fields on the currently active Spoonflower tab when the user clicks Pull/Push.
-- `https://spoonflower.com/*` + `https://*.spoonflower.com/*`: Limit access to Spoonflower pages only for tag extraction and tag entry.
+- `sidePanel`: Open the Seller Lab interface in the Chrome side panel.
+- `activeTab` + `scripting`: Read listing tag fields on the currently active Spoonflower tab when the user clicks Pull.
+- `https://spoonflower.com/*` + `https://*.spoonflower.com/*`: Limit access to Spoonflower pages only for tag extraction.
 
 ## 6) Privacy disclosure (confirm before submitting)
 
