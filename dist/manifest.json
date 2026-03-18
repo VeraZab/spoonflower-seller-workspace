@@ -4,7 +4,7 @@
   "short_name": "Spoonflower Seller Lab",
   "version": "1.0.0",
   "minimum_chrome_version": "114",
-  "description": "Plan and optimize your Spoonflower listing tags directly in your seller workspace",
+  "description": "Plan and optimize your Spoonflower store directly in your seller workspace",
   "permissions": [
     "sidePanel",
     "activeTab",
@@ -23,12 +23,12 @@
   },
   "content_scripts": [
     {
-      "js": [
-        "assets/content.ts-xghr2Oxk.js"
-      ],
       "matches": [
         "https://spoonflower.com/*",
         "https://*.spoonflower.com/*"
+      ],
+      "js": [
+        "src/content/content.ts-loader.js"
       ],
       "run_at": "document_idle"
     }
@@ -44,11 +44,11 @@
   "web_accessible_resources": [
     {
       "matches": [
-        "https://*.spoonflower.com/*",
-        "https://spoonflower.com/*"
+        "<all_urls>"
       ],
       "resources": [
-        "assets/content.ts-xghr2Oxk.js"
+        "**/*",
+        "*"
       ],
       "use_dynamic_url": false
     }

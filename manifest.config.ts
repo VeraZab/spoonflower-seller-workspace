@@ -7,7 +7,7 @@ export default defineManifest({
   version: "1.0.0",
   minimum_chrome_version: "114",
   description:
-    "Plan and optimize your Spoonflower listing tags directly in your seller workspace",
+    "Plan and optimize your Spoonflower store directly in your seller workspace",
   permissions: ["sidePanel", "activeTab", "scripting"],
   host_permissions: ["https://spoonflower.com/*", "https://*.spoonflower.com/*"],
   side_panel: {
